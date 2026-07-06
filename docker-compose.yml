@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: shopkart-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: shopkart
+      MYSQL_USER: shopkart
+      MYSQL_PASSWORD: shopkart123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: shopkart-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      DB_USERNAME: shopkart
+      DB_PASSWORD: shopkart123
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shopkart?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  frontend:
+    build: ./frontend
+    container_name: shopkart-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: on-failure
+
+volumes:
+  mysql_data:
