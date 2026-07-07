@@ -1,0 +1,38 @@
+trigger: none
+
+pr: none
+
+
+variables:
+  - group: shopkart-variable-group
+
+
+stages:
+
+# ==================================
+# Deploy Backend
+# ==================================
+
+- stage: DeployBackend
+
+  displayName: Deploy Backend Container
+
+  jobs:
+
+  - template: templates/deploy-backend.yml
+
+
+
+# ==================================
+# Deploy Frontend
+# ==================================
+
+- stage: DeployFrontend
+
+  displayName: Deploy Frontend Container
+
+  dependsOn: DeployBackend
+
+  jobs:
+
+  - template: templates/deploy-frontend.yml

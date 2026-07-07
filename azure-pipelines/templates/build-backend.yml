@@ -1,0 +1,51 @@
+jobs:
+- job: BuildBackend
+  displayName: "Build and Push Backend Docker Image"
+
+  pool:
+    vmImage: "ubuntu-latest"
+
+  steps:
+
+  - checkout: self
+
+
+  # Maven Build
+  - task: Maven@4
+    displayName: "Build Spring Boot Application"
+    inputs:
+      mavenPomFile: "backend/pom.xml"
+      goals: "clean package"
+      options: "-DskipTests"
+
+
+  # Docker Login to ACR
+  - task: Docker@2
+    displayName: "Login to Azure Container Registry"
+    inputs:
+      command: login
+      containerRegistry: $(AZURE_SERVICE_CONNECTION)
+
+
+  # Docker Build
+  - task: Docker@2
+    displayName: "Build Backend Docker Image"
+    inputs:
+      command: build
+      repository: $(ACR_NAME)/$(BACKEND_IMAGE_NAME)
+      dockerfile: backend/Dockerfile
+      buildContext: backend
+      tags: |
+        $(Build.BuildId)
+        latest
+
+
+  # Docker Push
+  - task: Docker@2
+    displayName: "Push Backend Docker Image"
+    inputs:
+      command: push
+      repository: $(ACR_NAME)/$(BACKEND_IMAGE_NAME)
+      tags: |
+        $(Build.BuildId)
+        latest

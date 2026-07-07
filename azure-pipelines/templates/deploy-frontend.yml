@@ -1,0 +1,61 @@
+jobs:
+
+- job: DeployFrontend
+
+  displayName: "Deploy Frontend Container"
+
+  pool:
+    vmImage: "ubuntu-latest"
+
+
+  steps:
+
+
+  - task: SSH@0
+
+    displayName: "Deploy Frontend on VM"
+
+    inputs:
+
+      sshEndpoint: $(FRONTEND_SSH_SERVICE_CONNECTION)
+
+      runOptions: inline
+
+      inline: |
+
+
+        echo "Logging into ACR"
+
+
+        docker login $(ACR_LOGIN_SERVER) \
+        -u $(ACR_USERNAME) \
+        -p $(ACR_PASSWORD)
+
+
+
+        echo "Pulling latest frontend image"
+
+
+        docker pull $(ACR_LOGIN_SERVER)/$(FRONTEND_IMAGE_NAME):latest
+
+
+
+        echo "Stopping old frontend container"
+
+
+        docker stop frontend-container || true
+
+
+        docker rm frontend-container || true
+
+
+
+        echo "Starting new frontend container"
+
+
+
+        docker run -d \
+        --name frontend-container \
+        -p 80:80 \
+        --restart always \
+        $(ACR_LOGIN_SERVER)/$(FRONTEND_IMAGE_NAME):latest
