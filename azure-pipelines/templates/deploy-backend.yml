@@ -41,7 +41,7 @@ jobs:
 
         echo "Pulling latest backend image"
 
-        docker pull $(ACR_LOGIN_SERVER)/$(BACKEND_IMAGE_NAME):latest
+        docker pull $(ACR_LOGIN_SERVER)/$(BACKEND_IMAGE_NAME):v1
 
 
         echo "Stopping old container"
@@ -59,4 +59,4 @@ jobs:
         --name backend-container \
         -p 8080:8080 \
         --restart always \
-        $(ACR_LOGIN_SERVER)/$(BACKEND_IMAGE_NAME):latest
+        $(ACR_LOGIN_SERVER)/$(BACKEND_IMAGE_NAME):v1

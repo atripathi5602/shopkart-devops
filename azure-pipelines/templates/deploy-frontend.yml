@@ -36,7 +36,7 @@ jobs:
         echo "Pulling latest frontend image"
 
 
-        docker pull $(ACR_LOGIN_SERVER)/$(FRONTEND_IMAGE_NAME):latest
+        docker pull $(ACR_LOGIN_SERVER)/$(FRONTEND_IMAGE_NAME):v1
 
 
 
@@ -58,4 +58,4 @@ jobs:
         --name frontend-container \
         -p 80:80 \
         --restart always \
-        $(ACR_LOGIN_SERVER)/$(FRONTEND_IMAGE_NAME):latest
+        $(ACR_LOGIN_SERVER)/$(FRONTEND_IMAGE_NAME):v1
