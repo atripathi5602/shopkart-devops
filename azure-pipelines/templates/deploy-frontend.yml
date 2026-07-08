@@ -1,61 +1,36 @@
 jobs:
+  - job: DeployFrontend
+    displayName: Deploy Frontend Container
 
-- job: DeployFrontend
+    pool:
+      vmImage: ubuntu-latest
 
-  displayName: "Deploy Frontend Container"
+    steps:
+      - task: AzureCLI@2
+        displayName: Deploy Frontend on VM
 
-  pool:
-    vmImage: "ubuntu-latest"
+        inputs:
+          azureSubscription: $(AZURE_SERVICE_CONNECTION)
+          scriptType: bash
+          scriptLocation: inlineScript
 
+          inlineScript: |
 
-  steps:
+            az vm run-command invoke \
+              --resource-group $(RESOURCE_GROUP) \
+              --name $(FRONTEND_VM_NAME) \
+              --command-id RunShellScript \
+              --scripts '
+                docker login $(ACR_NAME).azurecr.io -u $(ACR_USERNAME) -p $(ACR_PASSWORD)
 
+                docker pull $(ACR_NAME).azurecr.io/$(FRONTEND_IMAGE_NAME):v1
 
-  - task: SSH@0
+                docker stop frontend || true
+                docker rm frontend || true
 
-    displayName: "Deploy Frontend on VM"
-
-    inputs:
-
-      sshEndpoint: $(FRONTEND_SSH_SERVICE_CONNECTION)
-
-      runOptions: inline
-
-      inline: |
-
-
-        echo "Logging into ACR"
-
-
-        docker login $(ACR_LOGIN_SERVER) \
-        -u $(ACR_USERNAME) \
-        -p $(ACR_PASSWORD)
-
-
-
-        echo "Pulling latest frontend image"
-
-
-        docker pull $(ACR_LOGIN_SERVER)/$(FRONTEND_IMAGE_NAME):v1
-
-
-
-        echo "Stopping old frontend container"
-
-
-        docker stop frontend-container || true
-
-
-        docker rm frontend-container || true
-
-
-
-        echo "Starting new frontend container"
-
-
-
-        docker run -d \
-        --name frontend-container \
-        -p 80:80 \
-        --restart always \
-        $(ACR_LOGIN_SERVER)/$(FRONTEND_IMAGE_NAME):v1
+                docker run -d \
+                  --name frontend \
+                  -p 80:80 \
+                  --restart always \
+                  $(ACR_NAME).azurecr.io/$(FRONTEND_IMAGE_NAME):v1
+              '
